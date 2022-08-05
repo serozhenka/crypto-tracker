@@ -1,0 +1,130 @@
+{% load humanize %}
+{% load custom_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --main-bg-color: #f2f2f2;
+            --light-gray-color: #eae9e9;
+            --gray-color: #bebebe;
+            --semi-gray-color: #818181;
+            --dark-gray-color: #3f3f3f;
+            --light-blue-color: #e1eff6;
+            --link-color: #19a5e8;
+            --hover-link-color: #0f6a94;
+            --online-icon-color: #40b340;
+            --badge-color: #FF3041FF;
+            --primary-color: #0d6efd;
+            --up-color: #16c784;
+            --down-color: #ea3943;
+        }
+
+        body {
+            background-color: var(--main-bg-color);
+        }
+
+        td {
+            padding-top: 1rem!important;
+            padding-bottom: 1rem!important;
+        }
+
+        th {
+            vertical-align: middle;
+        }
+
+        .progress-bar {
+            height: 5px;
+            background-color: var(--light-gray-color);
+            border-radius: 5px;
+        }
+
+        .progress-bar-dark {
+            background-color: var(--gray-color);
+        }
+
+        .up { color: var(--up-color); }
+        .down { color: var(--down-color); }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width:5px;
+            height: 5px;
+            background-color: var(--light-gray-color);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--gray-color);
+            border-radius: 5px;
+        }
+
+    </style>
+
+</head>
+<body class="custom-scrollbar">
+
+    <div class="row mx-0">
+        <div class="col-lg-9 col-md-10 col-12 mx-auto px-4 py-3 bg-light">
+            <table class="table custom-scrollbar" style="display: block; overflow-x: auto;  white-space: nowrap;">
+                <thead class="position-sticky top-0 bg-light" style="z-index: 999">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">1d</th>
+                        <th scope="col">1w</th>
+                        <th scope="col">1m</th>
+                        <th scope="col">1y</th>
+                        <th scope="col">Market Cap</th>
+                        <th scope="col">Circulating Supply</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for crypto in cryptos %}
+                        <tr class="py-2">
+                            <th scope="row">{{ crypto.rank }}</th>
+                            <td>
+                                <div class="me-2 d-inline-block text-center" style="width: 30px; height: 30px">
+                                    <img class="img-fluid" src="{{ crypto.logo_url }}" alt="crypto-{{ crypto.identifier }}" style="max-width: 30px; max-height: 30px">
+                                </div>
+                                {{ crypto.name }}
+                                <span class="text-muted">{{ crypto.identifier }}</span>
+                            </td>
+                            <td>${{ crypto.price|intcomma }}</td>
+
+                            <td class="{% if crypto.price_change_pct_1d > 0 %}up{% else %}down{% endif %}">
+                                {{ crypto.price_change_pct_1d|multiply:100|floatformat:2 }}%
+                            </td>
+                            <td class="{% if crypto.price_change_pct_7d > 0 %}up{% else %}down{% endif %}">
+                                {{ crypto.price_change_pct_7d|multiply:100|floatformat:2 }}%
+                            </td>
+                            <td class="{% if crypto.price_change_pct_30d > 0 %}up{% else %}down{% endif %}">
+                                {{ crypto.price_change_pct_30d|multiply:100|floatformat:2 }}%
+                            </td>
+                            <td class="{% if crypto.price_change_pct_365d > 0 %}up{% else %}down{% endif %}">
+                                {{ crypto.price_change_pct_365d|multiply:100|floatformat:2 }}%
+                            </td>
+
+                            <td>${{ crypto.market_cap|intcomma }}</td>
+                            <td>
+                                {{ crypto.circulating_supply|intcomma }} {{ crypto.identifier }}
+                                {% if crypto.circulating_supply_ptc != 100 %}
+                                    <div class="position-relative mt-1">
+                                        <div class="w-100 progress-bar position-absolute"></div>
+                                        <div class="progress-bar progress-bar-dark position-absolute" style="width: {{ crypto.circulating_supply_ptc }}%"></div>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

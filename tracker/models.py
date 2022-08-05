@@ -17,6 +17,7 @@ class CryptoCurrency(models.Model):
     price_change_pct_365d = models.DecimalField(max_digits=9, decimal_places=4)
 
     class Meta:
+        verbose_name_plural = 'Crypto currencies'
         ordering = ['rank']
 
     def __str__(self):
