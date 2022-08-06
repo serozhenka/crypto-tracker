@@ -44,6 +44,10 @@
             vertical-align: middle;
         }
 
+        thead {
+            box-shadow: 0 1px 1px -1px #bebebe;
+        }
+
         .progress-bar {
             height: 5px;
             background-color: var(--light-gray-color);
@@ -62,6 +66,16 @@
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--gray-color);
+            border-radius: 5px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            width:0;
+            height: 0;
+        }
+
+        .no-scrollbar::-webkit-scrollbar-thumb {
             background: var(--gray-color);
             border-radius: 5px;
         }
@@ -91,8 +105,8 @@
     <h2 class="text-center text-muted my-3">Cryptocurrencies Tracker</h2>
 
     <div class="row mx-0">
-        <div class="col-lg-9 col-md-10 col-12 mx-auto px-4 py-2 bg-light">
-            <table class="table custom-scrollbar" style="overflow-x: auto;  white-space: nowrap;">
+        <div class="col-lg-9 col-md-10 col-12 mx-auto px-4 bg-light">
+            <table class="table no-scrollbar" style="display: block; overflow-x: auto;  white-space: nowrap; height: 100vh">
                 <thead class="position-sticky top-0 bg-light" style="z-index: 999">
                     <tr>
                         <th scope="col"></th>
