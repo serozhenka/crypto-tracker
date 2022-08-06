@@ -25,6 +25,10 @@
             --down-color: #ea3943;
         }
 
+        * {
+            transition: all .5s;
+        }
+
         body {
             background-color: var(--main-bg-color);
         }
@@ -48,8 +52,6 @@
             background-color: var(--gray-color);
         }
 
-        .up { color: var(--up-color); }
-        .down { color: var(--down-color); }
 
         .custom-scrollbar::-webkit-scrollbar {
             width:5px;
@@ -62,17 +64,36 @@
             border-radius: 5px;
         }
 
+        .arrow {
+            width: 0;
+            height: 0;
+            vertical-align: middle;
+            margin-right: 4px;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+        }
+
+        .up-arrow {
+            border-bottom: 5px solid black;
+        }
+
+        .down-arrow {
+            border-top: 5px solid black;
+        }
+
     </style>
 
 </head>
 <body class="custom-scrollbar">
 
+    <h2 class="text-center text-muted my-3">Cryptocurrencies Tracker</h2>
+
     <div class="row mx-0">
-        <div class="col-lg-9 col-md-10 col-12 mx-auto px-4 py-3 bg-light">
-            <table class="table custom-scrollbar" style="display: block; overflow-x: auto;  white-space: nowrap;">
+        <div class="col-lg-9 col-md-10 col-12 mx-auto px-4 py-2 bg-light">
+            <table class="table custom-scrollbar" style="overflow-x: auto;  white-space: nowrap;">
                 <thead class="position-sticky top-0 bg-light" style="z-index: 999">
                     <tr>
-                        <th scope="col">#</th>
+                        <th scope="col"></th>
                         <th scope="col">Name</th>
                         <th scope="col">Price</th>
                         <th scope="col">1d</th>
@@ -89,28 +110,28 @@
                             <th scope="row">{{ crypto.rank }}</th>
                             <td>
                                 <div class="me-2 d-inline-block text-center" style="width: 30px; height: 30px">
-                                    <img class="img-fluid" src="{{ crypto.logo_url }}" alt="crypto-{{ crypto.identifier }}" style="max-width: 30px; max-height: 30px">
+                                    <img id="{{ crypto.rank }}_image" class="img-fluid" src="{{ crypto.logo_url }}" alt="crypto-{{ crypto.identifier }}" style="max-width: 30px; max-height: 30px">
                                 </div>
-                                {{ crypto.name }}
-                                <span class="text-muted">{{ crypto.identifier }}</span>
+                                <span id="{{ crypto.rank }}_name">{{ crypto.name }}</span>
+                                <span id="{{ crypto.rank }}_identifier" class="text-muted">{{ crypto.identifier }}</span>
                             </td>
-                            <td>${{ crypto.price|intcomma }}</td>
+                            <td id="{{ crypto.rank }}_price">${{ crypto.price|intcomma }}</td>
 
-                            <td class="{% if crypto.price_change_pct_1d > 0 %}up{% else %}down{% endif %}">
+                            <td id="{{ crypto.rank }}price_change_pct_1d" style="color: var({% if crypto.price_change_pct_1d > 0 %}--up-color{% else %}--down-color{% endif %})">
                                 {{ crypto.price_change_pct_1d|multiply:100|floatformat:2 }}%
                             </td>
-                            <td class="{% if crypto.price_change_pct_7d > 0 %}up{% else %}down{% endif %}">
+                            <td id="{{ crypto.rank }}price_change_pct_7d" style="color: var({% if crypto.price_change_pct_7d > 0 %}--up-color{% else %}--down-color{% endif %})">
                                 {{ crypto.price_change_pct_7d|multiply:100|floatformat:2 }}%
                             </td>
-                            <td class="{% if crypto.price_change_pct_30d > 0 %}up{% else %}down{% endif %}">
+                            <td id="{{ crypto.rank }}price_change_pct_30d" style="color: var({% if crypto.price_change_pct_30d > 0 %}--up-color{% else %}--down-color{% endif %})">
                                 {{ crypto.price_change_pct_30d|multiply:100|floatformat:2 }}%
                             </td>
-                            <td class="{% if crypto.price_change_pct_365d > 0 %}up{% else %}down{% endif %}">
+                            <td id="{{ crypto.rank }}price_change_pct_365d" style="color: var({% if crypto.price_change_pct_365d > 0 %}--up-color{% else %}--down-color{% endif %})">
                                 {{ crypto.price_change_pct_365d|multiply:100|floatformat:2 }}%
                             </td>
 
-                            <td>${{ crypto.market_cap|intcomma }}</td>
-                            <td>
+                            <td id="{{ crypto.rank }}_market_cap">${{ crypto.market_cap|intcomma }}</td>
+                            <td id="{{ crypto.rank }}_circulating_supply">
                                 {{ crypto.circulating_supply|intcomma }} {{ crypto.identifier }}
                                 {% if crypto.circulating_supply_ptc != 100 %}
                                     <div class="position-relative mt-1">
@@ -125,6 +146,134 @@
             </table>
         </div>
     </div>
+
+    <script>
+        let style = getComputedStyle(document.body)
+        let ws_scheme = window.location.protocol === "http:" ? "ws:" : "wss:"
+        let ws_path = ws_scheme + "//" + window.location.host + "/tracker/"
+        let trackerWebsocket = new WebSocket(ws_path)
+        setupTrackerWebsocket()
+
+
+        function setupTrackerWebsocket() {
+            trackerWebsocket.onopen = function(e) {
+                console.log('tracker websocket opened')
+            }
+
+            trackerWebsocket.onmessage = function(e) {
+                let data = JSON.parse(e.data)
+
+                if (data.msg_type === "new_msg") {
+                    console.log(data.data)
+                    processData(data.data)
+                }
+            }
+
+            trackerWebsocket.onclose = (e) => {console.log("Websocket disconnected")}
+            trackerWebsocket.onerror = (e) => {console.log("Unknown error happened")}
+        }
+
+        let price_change_dates = ["1d", "7d", "30d", "365d"]
+
+        function processData(data) {
+            data.forEach(crypto => {
+                document.getElementById(`${crypto.rank}_price`).innerText = humanizePrice(crypto.price)
+                document.getElementById(`${crypto.rank}_name`).innerText = crypto.name
+                document.getElementById(`${crypto.rank}_identifier`).innerText = crypto.id
+                document.getElementById(`${crypto.rank}_market_cap`).innerText = humanizePrice(crypto.market_cap, {minimumFractionDigits: 0})
+                document.getElementById(`${crypto.rank}_image`).src = crypto.logo_url
+                document.getElementById(`${crypto.rank}_circulating_supply`).innerHTML = getCirculatingSupplyHTML(crypto)
+
+
+                let price_change_pct_list = [
+                    document.getElementById(`${crypto.rank}price_change_pct_1d`),
+                    document.getElementById(`${crypto.rank}price_change_pct_7d`),
+                    document.getElementById(`${crypto.rank}price_change_pct_30d`),
+                    document.getElementById(`${crypto.rank}price_change_pct_365d`)
+                ]
+
+                for(let i = 0; i < price_change_pct_list.length; i++) {
+                    let percentage = crypto[price_change_dates[i]].price_change_pct
+                    price_change_pct_list[i].innerText = humanizePercentage(percentage)
+
+                    if (percentage > 0) { price_change_pct_list[i].style.color = style.getPropertyValue('--up-color') }
+                    else { price_change_pct_list[i].style.color = style.getPropertyValue('--down-color') }
+                }
+
+            })
+        }
+
+        function humanizePrice(number, options) {
+            number = Number(number)
+            return number.toLocaleString("en-US", {
+                style: 'currency',
+                currency: 'USD',
+                ...options
+            });
+        }
+
+        function humanizeNumber(number) {
+            number = Number(number)
+            return number.toLocaleString("en-US", {
+                minimumFractionDigits: 0,
+            });
+        }
+
+        function humanizePercentage(number) {
+            let result = Number(number)
+            result = (result * 100).toFixed(2)
+            return result + "%"
+        }
+
+        function getCirculatingSupplyHTML(crypto) {
+            return `
+                <div>${humanizeNumber(crypto.circulating_supply)} ${crypto.id}</div>
+                ${crypto.max_supply ?
+                    `
+                        <div class="position-relative mt-1">
+                            <div class="w-100 progress-bar position-absolute"></div>
+                            <div class="progress-bar progress-bar-dark position-absolute" style="width: ${Number(crypto.circulating_supply) / Number(crypto.max_supply) * 100}%"></div>
+                        </div>
+                    ` : ``
+                }
+            `
+        }
+
+        function createArrowElement(order) {
+            let element = document.createElement('div')
+            element.id = "sort-arrow"
+            element.classList.add("arrow", order ? "down-arrow": "up-arrow", "d-inline-block")
+            return element
+        }
+
+        function getCellValue(tr, idx) {
+            let result = tr.children[idx].innerText || tr.children[idx].textContent
+            result = result.replace(/[$%,]/g, "")
+            return result;
+        }
+
+        function comparer(idx, asc) {
+            return function(a, b) {
+                return function(v1, v2) {
+                    return v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? (asc ? 1 : -1) * (v1 - v2) : v1.toString().localeCompare(v2);
+                }(getCellValue(a, idx), getCellValue(b, idx));
+        }}
+
+        // do the work...
+        Array.prototype.slice.call(document.querySelectorAll('th')).forEach(th => th.addEventListener('click', function() {
+                document.getElementById('sort-arrow')?.remove()
+                th.insertBefore(createArrowElement(this.asc), th.firstChild)
+                const table = th.closest('table')
+                const tbody = table.querySelector('tbody');
+
+                Array.from(tbody.querySelectorAll('tr'))
+                    .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+                    .forEach(tr => tbody.appendChild(tr));
+            })
+        );
+
+
+    </script>
 
 </body>
 </html>

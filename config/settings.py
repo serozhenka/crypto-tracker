@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # external apps
     'django_celery_beat',
     'django_celery_results',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
 
 # Database
@@ -121,5 +123,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 NOMICS_API_KEY = config('NOMICS_API_KEY')
 
 CELERY_BROKER_URL = config('REDIS_URL')
-CELERY_RESULT_BACKEND = 'django-db'
+# CELERY_RESULT_BACKEND = 'django-db'
 CELERY_RESULT_EXTENDED = True
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [config('REDIS_URL')],
+        },
+    },
+}
