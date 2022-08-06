@@ -164,7 +164,6 @@
                 let data = JSON.parse(e.data)
 
                 if (data.msg_type === "new_msg") {
-                    console.log(data.data)
                     processData(data.data)
                 }
             }
