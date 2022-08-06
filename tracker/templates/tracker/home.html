@@ -1,10 +1,12 @@
+{% load static %}
 {% load humanize %}
 {% load custom_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Crypto Tracker</title>
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
 
@@ -107,7 +109,7 @@
                 <tbody>
                     {% for crypto in cryptos %}
                         <tr class="py-2">
-                            <th scope="row">{{ crypto.rank }}</th>
+                            <td class="fw-bold">{{ crypto.rank }}</td>
                             <td>
                                 <div class="me-2 d-inline-block text-center" style="width: 30px; height: 30px">
                                     <img id="{{ crypto.rank }}_image" class="img-fluid" src="{{ crypto.logo_url }}" alt="crypto-{{ crypto.identifier }}" style="max-width: 30px; max-height: 30px">
